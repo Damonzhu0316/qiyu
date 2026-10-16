@@ -1,0 +1,17 @@
+# Local database, participant responses, uploaded research imagery and runtime logs
+data/
+*.sqlite3
+*.sqlite3-wal
+*.sqlite3-shm
+*.db
+*.log
+
+# Local Python/test/build files
+__pycache__/
+*.py[cod]
+tests/__pycache__/
+验收/
+备份/
+.env
+.venv/
+venv/

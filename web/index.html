@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#edf6f8">
+  <meta name="description" content="骑遇骑行街景选择实验与偏好分析平台：街景素材、实验设计、骑行选择与描述性分析。">
+  <title>骑遇 · 骑行街景选择实验与偏好分析平台 V1.2</title>
+  <link rel="icon" href="/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/research.css">
+  <link rel="stylesheet" href="/portal.css">
+  <script src="/portal.js" defer></script>
+  <script src="/app.js" defer></script>
+  <script src="/research.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="骑遇首页"><img src="/logo.svg" alt=""><span>骑遇 <small>RIDECHOICE</small></span></a>
+    <nav aria-label="主导航"><a href="/p/demo" id="nav-participant">体验实验</a><a href="/admin" id="nav-admin">研究者工作台</a><button class="nav-help" id="help-button">使用指南 <span>↗</span></button></nav>
+    <span class="local-tag"><i></i> 本地研究空间</span>
+  </header>
+  <main id="app" tabindex="-1"><div class="initial-loader">正在打开骑遇…</div></main>
+  <footer class="footer"><span>骑遇 RideChoice <span class="muted">/</span> 看见风景，也看见选择</span><span>匿名作答 · 数据保存在运行平台的电脑</span></footer>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <dialog id="image-dialog"><button class="dialog-close" aria-label="关闭大图">✕</button><img alt="路线街景大图"><p>保留原图比例 · 请结合题目给出的假设条件判断</p></dialog>
+  <dialog id="help-dialog"><button class="dialog-close" aria-label="关闭指南">✕</button><div class="eyebrow">GETTING STARTED</div><h2>从一组街景，开始一次实验。</h2><ol class="help-list"><li><b>体验流程</b><p>先完成演示，熟悉街景对比、选择和个人反馈。演示数据单独标记。</p></li><li><b>准备正式实验</b><p>在工作台新建实验，导入街景，设置时间、信号灯和道路条件，记录图片来源、日期及视角。</p></li><li><b>检查与发布</b><p>保存草稿，发布演示检查操作。核对设计与图片使用依据后发布正式版本，复制参与链接。</p></li><li><b>回收与分析</b><p>在结果页按版本查看完成情况，导出回答与题目快照。预览、未完成和演示记录有独立标记。</p></li></ol><div class="notice">本机链接适合在这台电脑作答。手机或其他电脑参与，需要使用局域网启动方式；平台没有自动部署到互联网。</div></dialog>
+  <noscript>此平台需要启用浏览器 JavaScript。</noscript>
+</body>
+</html>
