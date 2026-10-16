@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#eaf2ee">
+  <meta name="description" content="骑遇 RideChoice 街景与骑行实验体验预览。">
+  <title>骑遇 · 骑行街景体验预览</title>
+  <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="app.css">
+  <script src="bank.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#top" aria-label="骑遇首页"><img src="assets/logo.svg" alt=""><span>骑遇 <small>RIDECHOICE</small></span></a>
+    <div class="topbar-note"><span class="live-dot"></span> 街景 × 骑行 × 选择</div>
+    <a class="topbar-link" href="#experiments">开始体验 <span>↘</span></a>
+  </header>
+  <main id="top">
+    <section class="hero wrap">
+      <div class="hero-copy">
+        <div class="eyebrow"><span>骑行环境体验预览</span><i></i><span>DEMO EDITION</span></div>
+        <h1>你愿意<br><em>多骑几分钟？</em></h1>
+        <p class="hero-lead">看看不同街景，试着提取信息、比较场景，或给骑行感受打分。</p>
+        <div class="hero-actions"><a class="button primary" href="#experiments">挑一个体验 <span>→</span></a><span class="hero-caption">无需登录 · 打开即可开始</span></div>
+        <div class="hero-foot"><span>01 / 看街景</span><span>02 / 做选择</span><span>03 / 看体验流程</span></div>
+      </div>
+      <div class="hero-visual" aria-label="街景体验示意图">
+        <div class="visual-tag">RIDE SCENE <b>PREVIEW</b></div>
+        <img src="assets/scene-2.jpg" alt="街景演示图片">
+        <div class="visual-overlay"></div>
+        <div class="visual-stamp"><span>ROUTE</span><b>探索骑行街景</b><small>每次进入 · 随机一组题目</small></div>
+        <div class="visual-index">01<span>—</span>06</div>
+      </div>
+      <div class="hero-bottom"><span>体验内容</span><b>街景信息提取</b><i></i><b>多图场景选择</b><i></i><b>骑行感受评分</b><span class="right">适配电脑与手机</span></div>
+    </section>
+
+    <section class="experience wrap" id="experiments">
+      <div class="section-heading">
+        <div><div class="eyebrow">CHOOSE YOUR EXPERIENCE</div><h2>从一种方式开始</h2></div>
+        <p>每个体验都从内置演示题库随机抽题。你可以换一套再看。</p>
+      </div>
+      <div class="mode-switch" role="tablist" aria-label="选择体验方式">
+        <button class="mode-tab active" role="tab" aria-selected="true" data-mode="choice"><span>01</span><b>选择体验</b><small>读场景 · 选答案</small></button>
+        <button class="mode-tab" role="tab" aria-selected="false" data-mode="rating"><span>02</span><b>打分体验</b><small>看街景 · 给评分</small></button>
+      </div>
+      <div id="catalog" class="catalog" aria-live="polite"></div>
+      <div class="demo-banner"><span class="demo-icon">i</span><div><b>这是一个可操作的演示版</b><p>回答只在当前页面临时展示；不会保存、上传或作为真实实验数据。图片和题目用于体验流程。</p></div><span class="demo-label">PREVIEW ONLY</span></div>
+    </section>
+
+    <section class="how wrap">
+      <div class="how-title"><div class="eyebrow">A SIMPLE FLOW</div><h2>轻松看懂<br>实验怎么进行</h2><p>题目会随机组合，回答过程简洁直接。</p></div>
+      <div class="flow-grid"><article><span>01</span><b>选一种体验</b><p>选择信息判断、场景对比，或骑行感受打分。</p></article><article><span>02</span><b>随机抽取一组题</b><p>题目顺序和候选图片顺序会在每次进入时重新排列。</p></article><article><span>03</span><b>完成后查看提示</b><p>演示不会提交回答，方便你先了解页面和作答节奏。</p></article></div>
+    </section>
+  </main>
+  <footer class="footer wrap"><span>骑遇 RideChoice</span><span>街景与骑行体验预览 · DEMO ONLY</span><a href="#top">回到顶部 ↑</a></footer>
+  <dialog id="task-dialog" class="task-dialog"><button class="close" aria-label="关闭">×</button><div id="task-stage"></div></dialog>
+  <div id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
