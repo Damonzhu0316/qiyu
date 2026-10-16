@@ -3,7 +3,7 @@
   const scenes = Array.from({length: 100}, (_, i) => ({
     id: `damon-scene-${String(i + 1).padStart(3, '0')}`,
     name: `自采集骑行街景 ${String(i + 1).padStart(3, '0')}`,
-    image: `assets/damon-${String(i + 1).padStart(3, '0')}.jpg`
+    image: `assets/damon-${String(i + 1).padStart(3, '0')}.jpg?v=sharp-20261016`
   }));
   const shuffle = items => {
     const result = [...items];
