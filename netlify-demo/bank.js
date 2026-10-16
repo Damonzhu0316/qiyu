@@ -1,9 +1,9 @@
 'use strict';
 (() => {
-  const scenes = Array.from({length: 6}, (_, i) => ({
-    id: `scene-${i + 1}`,
-    name: `街景演示图 ${String(i + 1).padStart(2, '0')}`,
-    image: `assets/scene-${i + 1}.jpg`
+  const scenes = Array.from({length: 100}, (_, i) => ({
+    id: `damon-scene-${String(i + 1).padStart(3, '0')}`,
+    name: `自采集骑行街景 ${String(i + 1).padStart(3, '0')}`,
+    image: `assets/damon-${String(i + 1).padStart(3, '0')}.jpg`
   }));
   const shuffle = items => {
     const result = [...items];
@@ -56,8 +56,10 @@
     '你愿意用多少额外骑行时间换取更舒适的道路？'
   ];
   const detourOptions = ['不愿增加时间', '最多 3 分钟', '最多 5 分钟', '最多 10 分钟', '15 分钟或更久'];
-  const pairGroups = [[0,1],[2,3],[4,5],[0,4],[1,3],[2,5]];
-  const tripleGroups = [[0,2,4],[1,3,5],[0,3,5],[1,2,4],[0,1,5],[2,3,4]];
+  const makeSceneGroups = size => {
+    const randomized = shuffle(scenes);
+    return Array.from({length: Math.floor(randomized.length / size)}, (_, i) => randomized.slice(i * size, (i + 1) * size));
+  };
   const comparisonPrompts = {
     preferred: [
       '如果今天要骑行，你更愿意把哪一幅作为自己的路线？',
@@ -90,28 +92,28 @@
   const makeSinglePool = () => makePool({
     id: 'choice-space', title: '骑行空间判断 · 单选', mode: 'choice', kind: 'single', formatLabel: '单选 · 单图观察', sampleSize: 4,
     description: '观察一幅街景，判断骑行空间与道路交通的关系。没有标准答案。',
-    questions: scenes.map((scene, i) => ({id: `space-${i + 1}`, scene, prompt: choicePrompts[i], options: [...choiceOptions]}))
+    questions: scenes.map((scene, i) => ({id: `space-${i + 1}`, scene, prompt: choicePrompts[i % choicePrompts.length], options: [...choiceOptions]}))
   });
   const makeMultiPool = () => makePool({
     id: 'choice-features', title: '街景要素提取 · 多选', mode: 'choice', kind: 'multi', formatLabel: '多选 · 要素标注', sampleSize: 4,
     description: '从画面中提取道路、交通和骑行环境线索，可同时选择多项。',
-    questions: scenes.map((scene, i) => ({id: `features-${i + 1}`, scene, prompt: featurePrompts[i], options: [...featureOptions]}))
+    questions: scenes.map((scene, i) => ({id: `features-${i + 1}`, scene, prompt: featurePrompts[i % featurePrompts.length], options: [...featureOptions]}))
   });
   const makeTextPool = () => makePool({
     id: 'choice-observation', title: '骑行环境描述 · 简答', mode: 'choice', kind: 'text', formatLabel: '简答 · 信息提取', sampleSize: 3,
     description: '用简短文字记录你从街景中提取的信息或判断依据。',
-    questions: scenes.map((scene, i) => ({id: `observation-${i + 1}`, scene, prompt: openPrompts[i]}))
+    questions: scenes.map((scene, i) => ({id: `observation-${i + 1}`, scene, prompt: openPrompts[i % openPrompts.length]}))
   });
   const makeDetourPool = () => makePool({
     id: 'choice-detour', title: '路线取舍 · 愿意多骑几分钟？', mode: 'choice', kind: 'detour', formatLabel: '单选 · 时间取舍', sampleSize: 4,
     description: '结合街景感受，选择你对路线时间和环境品质的取舍。',
-    questions: scenes.map((scene, i) => ({id: `detour-${i + 1}`, scene, prompt: detourPrompts[i], options: [...detourOptions]}))
+    questions: scenes.map((scene, i) => ({id: `detour-${i + 1}`, scene, prompt: detourPrompts[i % detourPrompts.length], options: [...detourOptions]}))
   });
   const makeComparePool = (id, title, formatLabel, groups) => makePool({
     id, title, mode: 'choice', kind: 'compare', formatLabel, sampleSize: 3,
     description: '比较两幅或多幅街景，按自己的直观判断选择一幅。没有标准答案。',
     questions: groups.map((group, i) => ({
-      id: `${id}-${i + 1}`, prompt: comparisonPrompts[id][i], scenes: group.map(n => scenes[n])
+      id: `${id}-${i + 1}`, prompt: comparisonPrompts[id][i % comparisonPrompts[id].length], scenes: group
     }))
   });
   const scaleSpecs = [
@@ -147,7 +149,7 @@
   const makeScalePool = spec => makePool({
     id: `rating-${spec.id}`, title: `${spec.title} · 评分`, mode: 'rating', kind: 'scale',
     formatLabel: spec.formatLabel, sampleSize: 4, description: `围绕“${spec.title}”进行主观评价，按个人感受选择分值。`,
-    questions: scenes.map((scene, i) => ({id: `${spec.id}-${i + 1}`, scene, prompt: spec.prompts[i], min:1, max:spec.maxScore||5, low:spec.low, high:spec.high}))
+    questions: scenes.map((scene, i) => ({id: `${spec.id}-${i + 1}`, scene, prompt: spec.prompts[i % spec.prompts.length], min:1, max:spec.maxScore||5, low:spec.low, high:spec.high}))
   });
   const matrixDimensions = [
     {id:'safety',label:'安全感',low:'很低',high:'很高'},
@@ -163,13 +165,13 @@
   const matrixPool = makePool({
     id:'rating-matrix',title:'骑行感受 · 多维评分',mode:'rating',kind:'matrix',formatLabel:'多维 · 4 项评分',sampleSize:3,
     description:'在同一道题里分别评价安全感、舒适度、空间连续性和骑行压力。',
-    questions:scenes.map((scene,i)=>({id:`matrix-${i+1}`,scene,prompt:matrixPrompts[i],dimensions:matrixDimensions}))
+    questions:scenes.map((scene,i)=>({id:`matrix-${i+1}`,scene,prompt:matrixPrompts[i % matrixPrompts.length],dimensions:matrixDimensions}))
   });
   const pools = [
     makeSinglePool(), makeMultiPool(), makeTextPool(), makeDetourPool(),
-    makeComparePool('preferred','双图比较 · 选更愿意骑的场景','双图 · 选偏好',pairGroups),
-    makeComparePool('leastPreferred','三图比较 · 选最不愿意骑的场景','三图 · 选最不愿意',tripleGroups),
-    makeComparePool('realistic','场景辨识 · 选最符合真实骑行的画面','双图 · 选真实感',pairGroups),
+    makeComparePool('preferred','双图比较 · 选更愿意骑的场景','双图 · 选偏好',makeSceneGroups(2)),
+    makeComparePool('leastPreferred','三图比较 · 选最不愿意骑的场景','三图 · 选最不愿意',makeSceneGroups(3)),
+    makeComparePool('realistic','场景辨识 · 选最符合真实骑行的画面','双图 · 选真实感',makeSceneGroups(2)),
     ...scaleSpecs.map(makeScalePool), matrixPool
   ];
   window.RIDECHOICE_BANK = pools;
