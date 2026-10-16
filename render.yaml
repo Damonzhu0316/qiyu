@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: ridechoice
+    runtime: python
+    plan: starter
+    region: singapore
+    buildCommand: python -m compileall -q server.py annotation.py research_tools.py
+    startCommand: python server.py --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    disk:
+      name: ridechoice-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: RIDECHOICE_PUBLIC
+        value: "true"
+      - key: RIDECHOICE_DATA
+        value: /var/data
+      - key: RIDECHOICE_ADMIN_PASSWORD
+        sync: false
+      - key: RIDECHOICE_ADMIN_SECRET
+        generateValue: true

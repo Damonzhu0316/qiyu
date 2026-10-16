@@ -34,8 +34,13 @@ WEB = ROOT / 'web'
 DATA = Path(os.environ.get('RIDECHOICE_DATA', str(ROOT / 'data'))).resolve()
 DB = DATA / 'experiments.sqlite3'
 VERSION = '1.2.0'
-ADMIN_SECRET = secrets.token_urlsafe(32)
+PUBLIC_MODE = os.environ.get('RIDECHOICE_PUBLIC', '').strip().lower() in ('1', 'true', 'yes')
+ADMIN_PASSWORD = os.environ.get('RIDECHOICE_ADMIN_PASSWORD', '')
+ADMIN_SECRET = os.environ.get('RIDECHOICE_ADMIN_SECRET') or secrets.token_urlsafe(32)
 MAX_BODY = 18 * 1024 * 1024
+
+if PUBLIC_MODE and len(ADMIN_PASSWORD) < 12:
+    raise RuntimeError('线上公开部署必须设置至少 12 位的 RIDECHOICE_ADMIN_PASSWORD')
 
 
 def now():
@@ -431,14 +436,14 @@ class Handler(BaseHTTPRequestHandler):
     def guard(self, mutation=False):
         host = self.headers.get('Host', '').split(':')[0].lower()
         allowed = {'127.0.0.1', 'localhost', socket.gethostname().lower(), *self.server.allowed_hosts}
-        require(host in allowed, '主机地址未获允许', 403)
+        require(PUBLIC_MODE or host in allowed, '主机地址未获允许', 403)
         if mutation:
             origin = self.headers.get('Origin')
             require(not origin or urlparse(origin).netloc == self.headers.get('Host'), '请求来源不匹配', 403)
             require(self.headers.get('Sec-Fetch-Site') not in ('cross-site',), '不接受跨站请求', 403)
 
     def admin(self):
-        require(self.client_address[0] in ('127.0.0.1', '::1'), '研究者管理仅允许在运行平台的电脑上打开', 403)
+        require(PUBLIC_MODE or self.client_address[0] in ('127.0.0.1', '::1'), '研究者管理仅允许在运行平台的电脑上打开', 403)
         identity = annotation_api().authenticate(self)
         require(identity and identity['role'] == 'manager', '请先以管理人员身份登录', 401)
         cookie = self.headers.get('Cookie', '')
@@ -511,11 +516,12 @@ class Handler(BaseHTTPRequestHandler):
             require(identity, '请先登录', 401)
             return identity
         if path == '/api/admin/bootstrap':
-            require(self.client_address[0] in ('127.0.0.1', '::1'), '研究者管理仅限本机', 403)
+            require(PUBLIC_MODE or self.client_address[0] in ('127.0.0.1', '::1'), '研究者管理仅限本机', 403)
             require(self.headers.get('Sec-Fetch-Site') not in ('cross-site',), '请求来源不匹配', 403)
             identity = annotation_api().authenticate(self)
             require(identity and identity['role'] == 'manager', '请先以管理人员身份登录', 401)
-            self.send({'ok': True}, cookie=f'ride_admin={ADMIN_SECRET}; HttpOnly; SameSite=Strict; Path=/')
+            secure = '; Secure' if PUBLIC_MODE or self.headers.get('X-Forwarded-Proto') == 'https' else ''
+            self.send({'ok': True}, cookie=f'ride_admin={ADMIN_SECRET}; HttpOnly; SameSite=Strict; Path=/{secure}')
             return
         if path == '/api/admin':
             self.admin()
@@ -619,9 +625,14 @@ class Handler(BaseHTTPRequestHandler):
     def route_post(self, path, body):
         require(isinstance(body, dict), '请求格式不正确')
         if path == '/api/login':
+            if PUBLIC_MODE and body.get('role') == 'manager':
+                provided = body.get('manager_password', '')
+                require(isinstance(provided, str) and secrets.compare_digest(provided, ADMIN_PASSWORD),
+                        '管理人员口令不正确', 403)
             result = annotation_api().login(body)
             token = result.pop('token')
-            self.send(result, cookie=f'ride_role={token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=2592000')
+            secure = '; Secure' if PUBLIC_MODE or self.headers.get('X-Forwarded-Proto') == 'https' else ''
+            self.send(result, cookie=f'ride_role={token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=2592000{secure}')
             return
         if path == '/api/logout':
             identity = annotation_api().authenticate(self)
@@ -630,7 +641,8 @@ class Handler(BaseHTTPRequestHandler):
                 digest = hashlib.sha256(token.encode()).hexdigest()
                 with connect() as con:
                     con.execute('DELETE FROM identities WHERE token_hash=?', (digest,))
-            self.send({'ok': True}, cookie='ride_role=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0')
+            secure = '; Secure' if PUBLIC_MODE or self.headers.get('X-Forwarded-Proto') == 'https' else ''
+            self.send({'ok': True}, cookie=f'ride_role=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0{secure}')
             return
         if path == '/api/admin/annotations':
             self.admin()
@@ -714,8 +726,8 @@ class Handler(BaseHTTPRequestHandler):
 
 def main():
     parser = argparse.ArgumentParser(description='RideChoice 街景选择实验平台')
-    parser.add_argument('--host', default='127.0.0.1')
-    parser.add_argument('--port', type=int, default=8896)
+    parser.add_argument('--host', default=os.environ.get('HOST', '0.0.0.0' if PUBLIC_MODE else '127.0.0.1'))
+    parser.add_argument('--port', type=int, default=int(os.environ.get('PORT', '8896')))
     parser.add_argument('--open', action='store_true')
     args = parser.parse_args()
     init()
@@ -729,7 +741,7 @@ def main():
     url = f'http://127.0.0.1:{args.port}'
     print(f'RideChoice {VERSION}\nLocal: {url}\nResearcher: {url}/admin\nDemo: {url}/p/demo', flush=True)
     if args.host == '0.0.0.0':
-        print('LAN participant access enabled. Researcher management remains local-only.', flush=True)
+        print('Public web access enabled.' if PUBLIC_MODE else 'LAN participant access enabled. Researcher management remains local-only.', flush=True)
     if args.open:
         webbrowser.open(url + '/admin')
     try:
